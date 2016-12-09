@@ -36,10 +36,10 @@ class PanelAPP_API():
 
         # loop through each panel within the json
         for panel in json_results["result"]:
-            #print panel
+            
             # create a tuple of the name and version
             toople = (str(panel["Panel_Id"]),str(panel["Name"]), float(panel["CurrentVersion"]))
-            #print toople
+            
             # create a dictionary key with this tuple and an empty dictionary as the value
             self.dict_of_panels[toople] = {}
 
@@ -70,28 +70,13 @@ class PanelAPP_API():
             
             # loop through each gene in the json
             for gene in json_results["result"]["Genes"]:
-                #print gene
                 ensemblid_list=[]
                 ensemblids=gene["EnsembleGeneIds"]
                 for ensemblid in ensemblids:
-                    ensemblid_list.append(str(ensemblid))
-                    
-                #for ensemblid in ensemblids:
-                    ############################################################
-                    # if len(ensemblid)>1:
-                    #     for j in ensemblid:
-                    #         ensemblid_list.append(str(j))
-                    # else:
-                    ############################################################
-                        #ensemblid_list.append(str(ensemblid))
-                        
+                    ensemblid_list.append(str(ensemblid))                 
                                         
-                #symbol_list=[]
                 symbol = str(gene["GeneSymbol"])
-                
-                #symbol_list.append(str(symbol))
-                #print symbol
-                
+
                 # some genes have multiple ensembl gene ids. combine these into a sql friendly string
                 ensemblid = "'" + '\',\''.join(ensemblid_list) + "'"  # plan is to use if gene in this string
 
@@ -107,31 +92,37 @@ class PanelAPP_API():
                     red_symbol_list.append(symbol)
 
             # populate the dictionary for this panel with an entry for each gene list
-            #self.dict_of_panels[i]["red"] = red_list
-            self.dict_of_panels[i]["amber"] = amber_list
-            self.dict_of_panels[i]["green"] = green_list
+            #self.dict_of_panels[i]["Red"] = red_list
+            self.dict_of_panels[i]["Amber"] = amber_list
+            self.dict_of_panels[i]["Green"] = green_list
             
             # populate the dictionary for this panel with an entry for each gene list
             #self.dict_of_panels[i]["red_symbols"] = red_symbol_list
-            self.dict_of_panels[i]["amber_symbols"] = amber_symbol_list
-            self.dict_of_panels[i]["green_symbols"] = green_symbol_list
+            self.dict_of_panels[i]["Amber_symbols"] = amber_symbol_list
+            self.dict_of_panels[i]["Green_symbols"] = green_symbol_list
             
         # call module to write output file 
         self.write_output()
             
     def write_output(self):
-        #open a file to write to
+        #open two files, one to capture all ensembl ids for each panel and one to capture a list of symbols.
         outputfile=open(self.outputfilepath+"PanelAppOut.txt",'w')
         symbols_outputfile=open(self.outputfilepath+"PanelAppOut_symbols.txt",'w')
-        
+        # for each panel
         for i in self.dict_of_panels:
+            # for each colour
             for j in self.dict_of_panels[i]:
+                # if it's a gene symbol panel  
                 if "symbols" in j:
+                    " if no symbols for this panel"
                     if len(self.dict_of_panels[i][j])==0:
                         pass
                     else:
+                        # write line so looks like panelhash_panelname_version_colour_symbols:['list','of','gene','symbols']
+                        # eg. 553f968cbb5a1616e5ed45cc_Classical tuberous sclerosis_1.0_Green_symbols:['TSC1', 'TSC2']
                         symbols_outputfile.write(str(i[0])+"_"+str(i[1])+"_"+str(i[2])+"_"+j+":"+str(self.dict_of_panels[i][j])+"\n")
                 else:
+                    #repeat for ensembl ids
                     if len(self.dict_of_panels[i][j])==0:
                         pass
                     else:
